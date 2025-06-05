@@ -33,6 +33,7 @@ class ControlPanel {
     aggressionSlider.setTextOrientation(G4P.ORIENT_TRACK);
     aggressionSlider.setOpaque(true);
     aggressionSlider.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+    aggressionSlider.addEventHandler(this, "handleSliderEvents");
     
     fearLabel = new GLabel(controlWindow, 20, 70, 260, 20);
     fearLabel.setText("Human Fear");
@@ -46,6 +47,7 @@ class ControlPanel {
     fearSlider.setTextOrientation(G4P.ORIENT_TRACK);
     fearSlider.setOpaque(true);
     fearSlider.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+    fearSlider.addEventHandler(this, "handleSliderEvents");
     
     cohesionLabel = new GLabel(controlWindow, 20, 130, 260, 20);
     cohesionLabel.setText("Group Cohesion");
@@ -59,14 +61,17 @@ class ControlPanel {
     cohesionSlider.setTextOrientation(G4P.ORIENT_TRACK);
     cohesionSlider.setOpaque(true);
     cohesionSlider.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+    cohesionSlider.addEventHandler(this, "handleSliderEvents");
     
     enclosedCheckbox = new GCheckbox(controlWindow, 20, 200, 260, 40);
     enclosedCheckbox.setText("Enclosed Environment");
     enclosedCheckbox.setOpaque(true);
     enclosedCheckbox.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+    enclosedCheckbox.addEventHandler(this, "handleCheckboxEvents");
     
     resetButton = new GButton(controlWindow, 20, 260, 260, 40, "Reset Simulation");
     resetButton.setLocalColorScheme(GCScheme.BLUE_SCHEME);
+    resetButton.addEventHandler(this, "handleButtonEvents");
   }
   
   void drawControlPanel(PApplet appc, GWinData data) {
@@ -90,9 +95,13 @@ class ControlPanel {
     if (button == resetButton) {
       // Reset simulation
       for (int i = 0; i < humans.length; i++) {
-        humans[i] = new Human(random(width), random(height));
+        humans[i].position = new PVector(random(width), random(height));
+        humans[i].velocity = new PVector(0, 0);
+        humans[i].acceleration = new PVector(0, 0);
       }
-      gorilla = new Gorilla(width/2, height/2);
+      gorilla.position = new PVector(width/2, height/2);
+      gorilla.velocity = new PVector(0, 0);
+      gorilla.acceleration = new PVector(0, 0);
       environment.clearObstacles();
     }
   }

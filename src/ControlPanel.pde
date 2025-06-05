@@ -10,13 +10,17 @@ class ControlPanel {
   GLabel aggressionLabel;
   GLabel fearLabel;
   GLabel cohesionLabel;
+  Human[] humans;
+  Gorilla gorilla;
+  Environment environment;
   
-  ControlPanel(PApplet parentApplet) {
-    // Use the main PApplet reference for the window
+  ControlPanel(PApplet parentApplet, Human[] humans, Gorilla gorilla, Environment environment) {
+    this.humans = humans;
+    this.gorilla = gorilla;
+    this.environment = environment;
     controlWindow = GWindow.getWindow(parentApplet, "Control Panel", 0, 0, 300, 400, JAVA2D);
     controlWindow.addDrawHandler(this, "drawControlPanel");
     
-    // Add labels for sliders
     aggressionLabel = new GLabel(controlWindow, 20, 10, 260, 20);
     aggressionLabel.setText("Gorilla Aggression");
     aggressionLabel.setOpaque(false);

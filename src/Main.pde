@@ -12,7 +12,7 @@ Environment environment;
 ControlPanel controlPanel;
 
 void setup() {
-  size(WINDOW_WIDTH, WINDOW_HEIGHT);
+  size(800, 600);
   
   // Initialize simulation components
   humans = new Human[NUM_HUMANS];

@@ -11,9 +11,9 @@ class ControlPanel {
   GLabel fearLabel;
   GLabel cohesionLabel;
   
-  ControlPanel() {
+  ControlPanel(PApplet parentApplet) {
     // Use the main PApplet reference for the window
-    controlWindow = GWindow.getWindow(this, "Control Panel", 0, 0, 300, 400, JAVA2D);
+    controlWindow = GWindow.getWindow(parentApplet, "Control Panel", 0, 0, 300, 400, JAVA2D);
     controlWindow.addDrawHandler(this, "drawControlPanel");
     
     // Add labels for sliders

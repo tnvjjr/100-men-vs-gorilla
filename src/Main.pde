@@ -24,7 +24,7 @@ void setup() {
   environment = new Environment();
   
   // Create control panel in a separate window
-  controlPanel = new ControlPanel();
+  controlPanel = new ControlPanel(this);
 }
 
 void draw() {

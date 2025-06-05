@@ -135,9 +135,10 @@ void collectStatistics() {
       activeHumans++;
     }
   }
-  
   // Update statistics in GUI
-  gui.display();
+  gui.currentFrame = frameCounter;
+  gui.currentActiveHumans = activeHumans;
+  gui.currentGorillaHealth = gorilla.getHealth();
 }
 
 boolean fileExists(String filename) {

@@ -34,6 +34,11 @@ class GUI {
   float obstacleFriction = 0.95;
   int numObstacles = 5;
   
+  // Stats to display
+  int currentFrame = 0;
+  int currentActiveHumans = 0;
+  float currentGorillaHealth = 0;
+  
   // Constructor
   GUI(PApplet parent) {
     createGUI(parent);
@@ -170,17 +175,6 @@ class GUI {
     humanCountBar.setEnabled(false); // read-only
   }
   
-  void display() {
-    // Update statistics labels
-    timeLabel.setText("Time: " + frameCounter);
-    humansLabel.setText("Active Humans: " + countActiveHumans());
-    gorillaHealthLabel.setText("Gorilla Health: " + int(gorilla.getHealth()));
-    
-    // Update progress bars
-    gorillaHealthBar.setValue(gorilla.getHealth() / gorillaHealth * 100);
-    humanCountBar.setValue(float(countActiveHumans()) / numHumans * 100);
-  }
-
   void handleGorillaStrength(GSlider slider, GEvent event) {
     if (event == GEvent.VALUE_STEADY) {
       gorillaStrength = slider.getValueF();
@@ -224,5 +218,12 @@ class GUI {
   // Draw handler for the control window
   synchronized public void drawControlsWindow(PApplet appc, GWinData _data) {
     appc.background(230);
+    // Update statistics labels
+    timeLabel.setText("Time: " + currentFrame);
+    humansLabel.setText("Active Humans: " + currentActiveHumans);
+    gorillaHealthLabel.setText("Gorilla Health: " + int(currentGorillaHealth));
+    // Update progress bars
+    gorillaHealthBar.setValue(currentGorillaHealth / gorillaHealth * 100);
+    humanCountBar.setValue(currentActiveHumans / float(numHumans) * 100);
   }
 } 

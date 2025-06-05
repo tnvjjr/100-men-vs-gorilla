@@ -6,7 +6,7 @@ ArrayList<Entity> entities;
 Gorilla gorilla;
 ArrayList<Human> humans;
 Environment environment;
-ControlPanel controlPanel;
+GUI gui;
 boolean paused = false;
 int simulationSpeed = 1;
 int frameCounter = 0;
@@ -25,8 +25,8 @@ void setup() {
   // Initialize simulation components
   initializeSimulation();
   
-  // Create control panel
-  controlPanel = new ControlPanel(this);
+  // Create GUI
+  gui = new GUI(this);
   
   // Load configuration if file exists
   if (fileExists(configFile)) {
@@ -137,7 +137,7 @@ void collectStatistics() {
   }
   
   // Update statistics in GUI
-  controlPanel.updateStatistics(activeHumans, gorilla.getHealth());
+  gui.display();
 }
 
 boolean fileExists(String filename) {

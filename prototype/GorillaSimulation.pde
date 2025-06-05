@@ -6,7 +6,7 @@ ArrayList<Entity> entities;
 Gorilla gorilla;
 ArrayList<Human> humans;
 Environment environment;
-GUI gui;
+ControlPanel controlPanel;
 boolean paused = false;
 int simulationSpeed = 1;
 int frameCounter = 0;
@@ -18,11 +18,15 @@ float worldHeight = 800;
 String configFile = "config.txt";
 
 void setup() {
+  // Create main simulation window
   size(1000, 800);
   frameRate(60);
   
   // Initialize simulation components
   initializeSimulation();
+  
+  // Create control panel
+  controlPanel = new ControlPanel(this);
   
   // Load configuration if file exists
   if (fileExists(configFile)) {
@@ -41,9 +45,6 @@ void draw() {
   // Display simulation
   displaySimulation();
   
-  // Display GUI
-  gui.display();
-  
   // Increment frame counter
   frameCounter++;
 }
@@ -55,9 +56,6 @@ void initializeSimulation() {
   
   // Create environment
   environment = new Environment(worldWidth, worldHeight);
-  
-  // Create GUI
-  gui = new GUI();
   
   // Create gorilla
   gorilla = new Gorilla(width/2, height/2);
@@ -139,7 +137,7 @@ void collectStatistics() {
   }
   
   // Update statistics in GUI
-  gui.updateStatistics(activeHumans, gorilla.getHealth());
+  controlPanel.updateStatistics(activeHumans, gorilla.getHealth());
 }
 
 boolean fileExists(String filename) {
@@ -171,7 +169,10 @@ void loadConfiguration(String filename) {
 
 // Mouse and keyboard interaction
 void mousePressed() {
-  gui.handleMousePressed(mouseX, mouseY);
+  // Only handle mouse events in the main simulation window
+  if (mouseX >= 0 && mouseX < width && mouseY >= 0 && mouseY < height) {
+    // Handle simulation window mouse events if needed
+  }
 }
 
 void keyPressed() {

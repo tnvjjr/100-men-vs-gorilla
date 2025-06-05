@@ -1,45 +1,43 @@
 // Human class - Extends Entity
-// This class represents the humans with group behaviors
+// This class represents individual humans with fear mechanics and group behavior
 
 class Human extends Entity {
   // Human specific properties
-  float groupCohesion;
   float fearLevel;
-  String role;
-  PVector groupCenter;
-  ArrayList<Human> neighbors;
-  color humanColor;
+  float fearDecay;
+  float fearThreshold;
+  float groupCohesion;
+  float communicationRange;
+  float lastFearUpdate;
+  float panicLevel;
+  float courageLevel;
+  float groupInfluence;
+  float lastGroupUpdate;
+  float maxFear;
   
   // Constructor
   Human(float x, float y) {
     super(x, y);
     
     // Override base entity properties
-    size = 15;
+    size = 20;
     mass = 1.0;
-    maxSpeed = 2.5;
+    maxSpeed = 4.0;
     health = 50;
-    strength = 1.0;
+    strength = 2.0;
     
     // Human specific properties
-    groupCohesion = random(0.5, 1.5);
     fearLevel = 0;
-    neighbors = new ArrayList<Human>();
-    
-    // Assign random role
-    float r = random(1);
-    if (r < 0.7) {
-      role = "follower";
-      humanColor = color(0, 0, 255);
-    } else if (r < 0.9) {
-      role = "defender";
-      humanColor = color(255, 0, 0);
-      strength = 2.0;
-    } else {
-      role = "leader";
-      humanColor = color(0, 255, 0);
-      maxSpeed = 3.0;
-    }
+    fearDecay = 0.1;
+    fearThreshold = 0.5;
+    groupCohesion = 0.5;
+    communicationRange = 100;
+    lastFearUpdate = 0;
+    panicLevel = 0;
+    courageLevel = 0.5;
+    groupInfluence = 0.3;
+    lastGroupUpdate = 0;
+    maxFear = 1.0;
   }
   
   // Update method - override from Entity
@@ -47,29 +45,37 @@ class Human extends Entity {
     if (!active) return;
     
     // Update fear level
-    if (fearLevel > 0) {
-      fearLevel -= 0.01;
-    }
+    updateFear();
     
-    // Find neighbors
-    findNeighbors(100);
+    // Update group behavior
+    updateGroupBehavior();
     
-    // Calculate group center
-    calculateGroupCenter();
+    // Find nearest gorilla
+    Gorilla nearestGorilla = findNearestGorilla();
     
-    // Apply behaviors based on role and situation
-    if (fearLevel > 5) {
-      // Flee from gorilla
-      flee(gorilla.position);
-    } else {
-      // Normal behavior based on role
-      if (role.equals("follower")) {
-        followGroup();
-        avoidGorilla(200);
-      } else if (role.equals("defender")) {
-        defendGroup();
-      } else if (role.equals("leader")) {
-        leadGroup();
+    // If a gorilla is found, react to it
+    if (nearestGorilla != null && nearestGorilla.isActive()) {
+      PVector gorillaPos = nearestGorilla.getPosition();
+      float distance = PVector.dist(position, gorillaPos);
+      
+      // Calculate fear response
+      float fearResponse = calculateFearResponse(distance, nearestGorilla);
+      
+      // Update fear level based on response
+      applyFear(fearResponse);
+      
+      // Determine behavior based on fear level
+      if (fearLevel > fearThreshold) {
+        // Flee from gorilla
+        flee(gorillaPos);
+      } else {
+        // Consider attacking if in a group and not too afraid
+        if (isInGroup() && courageLevel > 0.7) {
+          considerAttack(nearestGorilla);
+        } else {
+          // Maintain safe distance
+          maintainDistance(gorillaPos);
+        }
       }
     }
     
@@ -82,48 +88,55 @@ class Human extends Entity {
     if (!active) return;
     
     // Draw human
+    color humanColor = lerpColor(color(0, 255, 0), color(255, 0, 0), fearLevel);
     fill(humanColor);
     stroke(0);
     ellipse(position.x, position.y, size, size);
     
-    // Draw connections to neighbors
-    if (neighbors.size() > 0) {
-      stroke(200, 200, 200, 100);
-      for (Human neighbor : neighbors) {
-        if (neighbor.isActive()) {
-          line(position.x, position.y, neighbor.position.x, neighbor.position.y);
-        }
-      }
-    }
+    // Draw health bar
+    float healthBarWidth = size * 1.5;
+    float healthBarHeight = 5;
+    float healthPercentage = health / 50.0;
     
-    // Draw fear indicator if afraid
-    if (fearLevel > 0) {
-      fill(255, 255, 0, map(fearLevel, 0, 10, 0, 255));
-      noStroke();
-      ellipse(position.x, position.y, size * 1.5, size * 1.5);
-    }
+    fill(255, 0, 0);
+    rect(position.x - healthBarWidth/2, position.y - size/2 - 15, 
+         healthBarWidth, healthBarHeight);
+    
+    fill(0, 255, 0);
+    rect(position.x - healthBarWidth/2, position.y - size/2 - 15, 
+         healthBarWidth * healthPercentage, healthBarHeight);
+         
+    // Draw fear indicator
+    fill(255, 0, 0);
+    rect(position.x - healthBarWidth/2, position.y - size/2 - 25, 
+         healthBarWidth, healthBarHeight);
+    
+    fill(0, 0, 255);
+    rect(position.x - healthBarWidth/2, position.y - size/2 - 25, 
+         healthBarWidth * fearLevel, healthBarHeight);
   }
   
   // Handle collision - override from Entity
   void handleCollision(Entity other) {
-    // If colliding with gorilla, take damage and increase fear
+    // If colliding with a gorilla, take damage
     if (other instanceof Gorilla) {
-      health -= other.strength * 0.5;
-      fearLevel += 3.0;
+      Gorilla gorilla = (Gorilla)other;
+      
+      // Calculate damage based on gorilla's strength and speed
+      float impactForce = gorilla.velocity.mag() * gorilla.strength;
+      health -= impactForce * 0.5;
+      
+      // Apply fear based on impact
+      applyFear(impactForce * 0.3);
       
       // Knockback effect
-      PVector knockback = PVector.sub(position, other.position);
+      PVector knockback = PVector.sub(position, gorilla.position);
       knockback.normalize();
-      knockback.mult(other.strength * 0.2);
+      knockback.mult(impactForce * 0.5);
       applyForce(knockback);
-    }
-    
-    // If colliding with another human, slight repulsion
-    if (other instanceof Human) {
-      PVector separation = PVector.sub(position, other.position);
-      separation.normalize();
-      separation.mult(0.3);
-      applyForce(separation);
+      
+      // Increase panic level
+      panicLevel = min(1.0, panicLevel + 0.2);
     }
     
     // Check if human is still active
@@ -132,313 +145,184 @@ class Human extends Entity {
     }
   }
   
-  // Find neighbors within a certain radius
-  void findNeighbors(float radius) {
-    neighbors.clear();
+  // Update fear level
+  void updateFear() {
+    // Decay fear over time
+    if (fearLevel > 0) {
+      fearLevel -= fearDecay;
+      if (fearLevel < 0) fearLevel = 0;
+    }
+    
+    // Decay panic level
+    if (panicLevel > 0) {
+      panicLevel -= fearDecay * 0.5;
+      if (panicLevel < 0) panicLevel = 0;
+    }
+    
+    // Update courage based on group presence
+    if (isInGroup()) {
+      courageLevel = min(1.0, courageLevel + 0.01);
+    } else {
+      courageLevel = max(0.2, courageLevel - 0.005);
+    }
+    
+    lastFearUpdate = millis();
+  }
+  
+  // Update group behavior
+  void updateGroupBehavior() {
+    if (millis() - lastGroupUpdate < 100) return;
+    
+    // Find nearby humans
+    ArrayList<Human> nearbyHumans = findNearbyHumans();
+    
+    // Calculate group influence
+    if (!nearbyHumans.isEmpty()) {
+      // Share fear levels
+      float sharedFear = 0;
+      for (Human human : nearbyHumans) {
+        sharedFear += human.fearLevel;
+      }
+      sharedFear /= nearbyHumans.size();
+      
+      // Adjust fear based on group
+      fearLevel = lerp(fearLevel, sharedFear, groupInfluence);
+      
+      // Increase group cohesion
+      groupCohesion = min(1.0, groupCohesion + 0.01);
+    } else {
+      // Decrease group cohesion when alone
+      groupCohesion = max(0.2, groupCohesion - 0.005);
+    }
+    
+    lastGroupUpdate = millis();
+  }
+  
+  // Find the nearest active gorilla
+  Gorilla findNearestGorilla() {
+    Gorilla nearest = null;
+    float minDistance = Float.MAX_VALUE;
+    
+    for (Gorilla gorilla : gorillas) {
+      if (!gorilla.isActive()) continue;
+      
+      float distance = PVector.dist(position, gorilla.position);
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearest = gorilla;
+      }
+    }
+    
+    return nearest;
+  }
+  
+  // Find nearby humans
+  ArrayList<Human> findNearbyHumans() {
+    ArrayList<Human> nearby = new ArrayList<Human>();
     
     for (Human human : humans) {
-      if (human != this && human.isActive()) {
-        float distance = PVector.dist(position, human.position);
-        if (distance < radius) {
-          neighbors.add(human);
-        }
-      }
-    }
-  }
-  
-  // Calculate the center of the group
-  void calculateGroupCenter() {
-    if (neighbors.size() == 0) {
-      groupCenter = position.copy();
-      return;
-    }
-    
-    PVector sum = new PVector(0, 0);
-    for (Human neighbor : neighbors) {
-      sum.add(neighbor.position);
-    }
-    
-    sum.div(neighbors.size());
-    groupCenter = sum;
-  }
-  
-  // Follow the group (cohesion behavior)
-  void followGroup() {
-    if (neighbors.size() == 0) return;
-    
-    // Move toward group center
-    PVector desired = PVector.sub(groupCenter, position);
-    desired.normalize();
-    desired.mult(maxSpeed);
-    
-    PVector steer = PVector.sub(desired, velocity);
-    steer.limit(maxForce);
-    steer.mult(groupCohesion);
-    
-    applyForce(steer);
-    
-    // Alignment - try to move in the same direction as neighbors
-    PVector alignment = new PVector(0, 0);
-    for (Human neighbor : neighbors) {
-      alignment.add(neighbor.velocity);
-    }
-    
-    if (neighbors.size() > 0) {
-      alignment.div(neighbors.size());
-      alignment.normalize();
-      alignment.mult(maxSpeed);
+      if (!human.isActive() || human == this) continue;
       
-      PVector alignSteer = PVector.sub(alignment, velocity);
-      alignSteer.limit(maxForce);
-      alignSteer.mult(0.5);
-      
-      applyForce(alignSteer);
-    }
-    
-    // Separation - avoid crowding neighbors
-    PVector separation = new PVector(0, 0);
-    int count = 0;
-    
-    for (Human neighbor : neighbors) {
-      float distance = PVector.dist(position, neighbor.position);
-      if (distance > 0 && distance < size * 2) {
-        PVector diff = PVector.sub(position, neighbor.position);
-        diff.normalize();
-        diff.div(distance);
-        separation.add(diff);
-        count++;
+      float distance = PVector.dist(position, human.position);
+      if (distance < communicationRange) {
+        nearby.add(human);
       }
     }
     
-    if (count > 0) {
-      separation.div(count);
-      separation.normalize();
-      separation.mult(maxSpeed);
-      
-      PVector sepSteer = PVector.sub(separation, velocity);
-      sepSteer.limit(maxForce);
-      sepSteer.mult(1.5);
-      
-      applyForce(sepSteer);
-    }
+    return nearby;
   }
   
-  // Defend the group (move toward gorilla)
-  void defendGroup() {
-    // Only defend if gorilla is near the group
-    float distanceToGorilla = PVector.dist(groupCenter, gorilla.position);
+  // Calculate fear response based on distance and gorilla behavior
+  float calculateFearResponse(float distance, Gorilla gorilla) {
+    float baseFear = map(distance, 0, 500, 1.0, 0);
     
-    if (distanceToGorilla < 300 && fearLevel < 3) {
-      // Move toward gorilla
-      PVector desired = PVector.sub(gorilla.position, position);
-      
-      // But keep some distance
-      if (desired.mag() < 100) {
-        desired.normalize();
-        desired.mult(-maxSpeed);  // Move away if too close
-      } else {
-        desired.normalize();
-        desired.mult(maxSpeed);
-      }
-      
-      PVector steer = PVector.sub(desired, velocity);
-      steer.limit(maxForce);
-      
-      applyForce(steer);
-    } else {
-      // Otherwise follow the group
-      followGroup();
+    // Adjust fear based on gorilla's aggression
+    baseFear *= (1 + gorilla.aggressionLevel * 0.5);
+    
+    // Adjust fear based on group presence
+    if (isInGroup()) {
+      baseFear *= (1 - groupCohesion * 0.3);
     }
+    
+    // Adjust fear based on courage
+    baseFear *= (1 - courageLevel * 0.5);
+    
+    return baseFear;
   }
   
-  // Lead the group (move strategically)
-  void leadGroup() {
-    // Leaders try to position the group strategically
+  // Apply fear to the human
+  void applyFear(float amount) {
+    fearLevel = min(maxFear, fearLevel + amount);
     
-    // If gorilla is nearby, lead group away
-    float distanceToGorilla = PVector.dist(position, gorilla.position);
-    
-    if (distanceToGorilla < 250) {
-      // Lead away from gorilla
-      PVector desired = PVector.sub(position, gorilla.position);
-      desired.normalize();
-      desired.mult(maxSpeed);
-      
-      PVector steer = PVector.sub(desired, velocity);
-      steer.limit(maxForce);
-      
-      applyForce(steer);
-      
-      // Also try to move toward edges
-      moveTowardEdge();
-    } else {
-      // Otherwise, try to surround gorilla from a distance
-      surroundGorilla();
-    }
-  }
-  
-  // Move toward the nearest edge
-  void moveTowardEdge() {
-    PVector edgeDir = new PVector(0, 0);
-    
-    // Find direction to nearest edge
-    if (position.x < width/2) {
-      edgeDir.x = -1;
-    } else {
-      edgeDir.x = 1;
-    }
-    
-    if (position.y < height/2) {
-      edgeDir.y = -1;
-    } else {
-      edgeDir.y = 1;
-    }
-    
-    edgeDir.normalize();
-    edgeDir.mult(maxSpeed * 0.5);
-    
-    PVector steer = PVector.sub(edgeDir, velocity);
-    steer.limit(maxForce);
-    
-    applyForce(steer);
-  }
-  
-  // Try to surround gorilla from a distance
-  void surroundGorilla() {
-    // Calculate angle around gorilla
-    PVector toGorilla = PVector.sub(gorilla.position, position);
-    float distance = toGorilla.mag();
-    
-    // Only if at a safe distance
-    if (distance > 200 && distance < 400) {
-      float angle = toGorilla.heading();
-      
-      // Calculate position on circle around gorilla
-      float targetAngle = angle + PI/6;  // Slightly offset
-      float targetDistance = 300;
-      
-      float targetX = gorilla.position.x + cos(targetAngle) * targetDistance;
-      float targetY = gorilla.position.y + sin(targetAngle) * targetDistance;
-      
-      PVector target = new PVector(targetX, targetY);
-      
-      // Move toward that position
-      PVector desired = PVector.sub(target, position);
-      desired.normalize();
-      desired.mult(maxSpeed);
-      
-      PVector steer = PVector.sub(desired, velocity);
-      steer.limit(maxForce);
-      
-      applyForce(steer);
-    } else {
-      // If too far, move closer to gorilla
-      if (distance > 400) {
-        PVector desired = PVector.sub(gorilla.position, position);
-        desired.normalize();
-        desired.mult(maxSpeed);
-        
-        PVector steer = PVector.sub(desired, velocity);
-        steer.limit(maxForce);
-        steer.mult(0.5);  // Move slowly toward gorilla
-        
-        applyForce(steer);
-      }
-      
-      // If too close, move away
-      if (distance < 200) {
-        flee(gorilla.position);
-      }
+    // Increase panic if fear is high
+    if (fearLevel > fearThreshold * 0.8) {
+      panicLevel = min(1.0, panicLevel + amount * 0.5);
     }
   }
   
   // Flee from a position
   void flee(PVector target) {
     PVector desired = PVector.sub(position, target);
+    desired.normalize();
+    
+    // Adjust speed based on fear and panic
+    float fleeSpeed = maxSpeed * (1 + fearLevel * 0.5 + panicLevel * 0.3);
+    desired.mult(fleeSpeed);
+    
+    PVector steer = PVector.sub(desired, velocity);
+    steer.limit(maxForce);
+    
+    applyForce(steer);
+  }
+  
+  // Maintain safe distance from a position
+  void maintainDistance(PVector target) {
+    PVector desired = PVector.sub(position, target);
     float distance = desired.mag();
     
-    if (distance < 250) {
+    // Calculate ideal distance based on fear
+    float idealDistance = map(fearLevel, 0, 1, 100, 300);
+    
+    if (distance < idealDistance) {
+      // Move away if too close
       desired.normalize();
-      desired.mult(maxSpeed);
+      desired.mult(maxSpeed * 0.8);
+    } else if (distance > idealDistance * 1.2) {
+      // Move closer if too far (when in a group)
+      if (isInGroup()) {
+        desired.normalize();
+        desired.mult(-maxSpeed * 0.5);
+      }
+    }
+    
+    PVector steer = PVector.sub(desired, velocity);
+    steer.limit(maxForce);
+    
+    applyForce(steer);
+  }
+  
+  // Consider attacking the gorilla
+  void considerAttack(Gorilla gorilla) {
+    // Only attack if in a group and not too afraid
+    if (!isInGroup() || fearLevel > fearThreshold * 0.7) return;
+    
+    PVector desired = PVector.sub(gorilla.position, position);
+    float distance = desired.mag();
+    
+    // Only attack if close enough
+    if (distance < 100) {
+      desired.normalize();
+      desired.mult(maxSpeed * 0.8);
       
       PVector steer = PVector.sub(desired, velocity);
       steer.limit(maxForce);
-      
-      // Flee stronger when closer
-      float fleeFactor = map(distance, 0, 250, 3, 1);
-      steer.mult(fleeFactor);
       
       applyForce(steer);
     }
   }
   
-  // Avoid gorilla if within range
-  void avoidGorilla(float range) {
-    float distance = PVector.dist(position, gorilla.position);
-    
-    if (distance < range) {
-      flee(gorilla.position);
-    }
-  }
-  
-  // Apply fear effect
-  void applyFear(float amount) {
-    fearLevel += amount;
-    if (fearLevel > 10) {
-      fearLevel = 10;
-    }
-  }
-  
-  // Communicate with nearby humans (increase their fear if this human is afraid)
-  void communicate() {
-    if (fearLevel > 3) {
-      for (Human neighbor : neighbors) {
-        if (neighbor.fearLevel < fearLevel) {
-          neighbor.fearLevel += 0.5;
-        }
-      }
-    }
-  }
-  
-  // Form a group with nearby humans
-  void formGroup() {
-    // Already implemented through the neighbors system
-  }
-  
-  // Calculate strategy based on group composition
-  void calculateStrategy() {
-    // Count roles in neighbors
-    int leaders = 0;
-    int defenders = 0;
-    int followers = 0;
-    
-    for (Human neighbor : neighbors) {
-      if (neighbor.role.equals("leader")) leaders++;
-      if (neighbor.role.equals("defender")) defenders++;
-      if (neighbor.role.equals("follower")) followers++;
-    }
-    
-    // Adjust behavior based on group composition
-    if (defenders > 3) {
-      // With many defenders, be more aggressive
-      if (role.equals("defender")) {
-        strength *= 1.2;
-      }
-    }
-    
-    if (leaders == 0 && role.equals("follower") && random(1) < 0.1) {
-      // If no leaders in group, followers might become leaders
-      role = "leader";
-      humanColor = color(0, 255, 0);
-    }
-  }
-  
-  // Retreat when heavily damaged
-  void retreat() {
-    if (health < 20) {
-      // Move away from gorilla and toward edges
-      flee(gorilla.position);
-      moveTowardEdge();
-    }
+  // Check if human is part of a group
+  boolean isInGroup() {
+    return !findNearbyHumans().isEmpty();
   }
 }

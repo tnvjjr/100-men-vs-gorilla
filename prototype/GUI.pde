@@ -64,7 +64,7 @@ class GUI {
     gorillaStrengthSlider.setEasing(6.5);
     gorillaStrengthSlider.setOpaque(true);
     gorillaStrengthSlider.setTextOrientation(G4P.ORIENT_LEFT);
-    gorillaStrengthSlider.addEventHandler(parent, "handleGorillaStrength");
+    gorillaStrengthSlider.addEventHandler(this, "handleGorillaStrength");
     
     // Gorilla Speed Slider
     GLabel speedLabel = new GLabel(controlsWindow, 10, 65, 100, 20);
@@ -80,7 +80,7 @@ class GUI {
     gorillaSpeedSlider.setEasing(6.5);
     gorillaSpeedSlider.setOpaque(true);
     gorillaSpeedSlider.setTextOrientation(G4P.ORIENT_LEFT);
-    gorillaSpeedSlider.addEventHandler(parent, "handleGorillaSpeed");
+    gorillaSpeedSlider.addEventHandler(this, "handleGorillaSpeed");
     
     // Human Controls
     GLabel humanLabel = new GLabel(controlsWindow, 10, 200, 380, 20);
@@ -101,7 +101,7 @@ class GUI {
     numHumansSlider.setEasing(6.5);
     numHumansSlider.setOpaque(true);
     numHumansSlider.setTextOrientation(G4P.ORIENT_LEFT);
-    numHumansSlider.addEventHandler(parent, "handleNumHumans");
+    numHumansSlider.addEventHandler(this, "handleNumHumans");
     
     // Environment Controls
     GLabel envLabel = new GLabel(controlsWindow, 10, 400, 380, 20);
@@ -122,16 +122,16 @@ class GUI {
     environmentSizeSlider.setEasing(6.5);
     environmentSizeSlider.setOpaque(true);
     environmentSizeSlider.setTextOrientation(G4P.ORIENT_LEFT);
-    environmentSizeSlider.addEventHandler(parent, "handleEnvironmentSize");
+    environmentSizeSlider.addEventHandler(this, "handleEnvironmentSize");
     
     // Control Buttons
     resetButton = new GButton(controlsWindow, 10, 500, 180, 30);
     resetButton.setText("Reset Simulation");
-    resetButton.addEventHandler(parent, "handleReset");
+    resetButton.addEventHandler(this, "handleReset");
     
     pauseButton = new GButton(controlsWindow, 210, 500, 180, 30);
     pauseButton.setText("Pause/Resume");
-    pauseButton.addEventHandler(parent, "handlePause");
+    pauseButton.addEventHandler(this, "handlePause");
     
     // Statistics Display
     GLabel statsTitleLabel = new GLabel(controlsWindow, 10, 600, 380, 20);
@@ -180,50 +180,49 @@ class GUI {
     gorillaHealthBar.setValue(gorilla.getHealth() / gorillaHealth * 100);
     humanCountBar.setValue(float(countActiveHumans()) / numHumans * 100);
   }
-}
 
-// Event handlers for G4P controls
-public void handleGorillaStrength(GSlider slider, GEvent event) {
-  if (event == GEvent.VALUE_STEADY) {
-    gorillaStrength = slider.getValueF();
-    if (gorilla != null) gorilla.setStrength(gorillaStrength);
+  void handleGorillaStrength(GSlider slider, GEvent event) {
+    if (event == GEvent.VALUE_STEADY) {
+      gorillaStrength = slider.getValueF();
+      if (gorilla != null) gorilla.setStrength(gorillaStrength);
+    }
   }
-}
 
-public void handleGorillaSpeed(GSlider slider, GEvent event) {
-  if (event == GEvent.VALUE_STEADY) {
-    gorillaSpeed = slider.getValueF();
-    if (gorilla != null) gorilla.maxSpeed = gorillaSpeed;
+  void handleGorillaSpeed(GSlider slider, GEvent event) {
+    if (event == GEvent.VALUE_STEADY) {
+      gorillaSpeed = slider.getValueF();
+      if (gorilla != null) gorilla.maxSpeed = gorillaSpeed;
+    }
   }
-}
 
-public void handleNumHumans(GSlider slider, GEvent event) {
-  if (event == GEvent.VALUE_STEADY) {
-    numHumans = slider.getValueI();
+  void handleNumHumans(GSlider slider, GEvent event) {
+    if (event == GEvent.VALUE_STEADY) {
+      numHumans = slider.getValueI();
+    }
   }
-}
 
-public void handleEnvironmentSize(GSlider slider, GEvent event) {
-  if (event == GEvent.VALUE_STEADY) {
-    environmentSize = slider.getValueF();
-    worldWidth = environmentSize;
-    worldHeight = environmentSize * 0.8;
+  void handleEnvironmentSize(GSlider slider, GEvent event) {
+    if (event == GEvent.VALUE_STEADY) {
+      environmentSize = slider.getValueF();
+      worldWidth = environmentSize;
+      worldHeight = environmentSize * 0.8;
+    }
   }
-}
 
-public void handleReset(GButton button, GEvent event) {
-  if (event == GEvent.CLICKED) {
-    initializeSimulation();
+  void handleReset(GButton _button, GEvent event) {
+    if (event == GEvent.CLICKED) {
+      initializeSimulation();
+    }
   }
-}
 
-public void handlePause(GButton button, GEvent event) {
-  if (event == GEvent.CLICKED) {
-    paused = !paused;
+  void handlePause(GButton _button, GEvent event) {
+    if (event == GEvent.CLICKED) {
+      paused = !paused;
+    }
   }
-}
 
-// Draw handler for the control window
-synchronized public void drawControlsWindow(PApplet appc, GWinData data) {
-  appc.background(230);
+  // Draw handler for the control window
+  synchronized public void drawControlsWindow(PApplet appc, GWinData _data) {
+    appc.background(230);
+  }
 } 

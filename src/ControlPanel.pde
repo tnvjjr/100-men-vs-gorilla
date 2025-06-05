@@ -7,41 +7,54 @@ class ControlPanel {
   GSlider cohesionSlider;
   GCheckbox enclosedCheckbox;
   GButton resetButton;
+  GLabel aggressionLabel;
+  GLabel fearLabel;
+  GLabel cohesionLabel;
   
   ControlPanel() {
+    // Use the main PApplet reference for the window
     controlWindow = GWindow.getWindow(this, "Control Panel", 0, 0, 300, 400, JAVA2D);
     controlWindow.addDrawHandler(this, "drawControlPanel");
     
-    // Create controls
-    aggressionSlider = new GSlider(controlWindow, 20, 20, 260, 40, 20);
+    // Add labels for sliders
+    aggressionLabel = new GLabel(controlWindow, 20, 10, 260, 20);
+    aggressionLabel.setText("Gorilla Aggression");
+    aggressionLabel.setOpaque(false);
+    
+    aggressionSlider = new GSlider(controlWindow, 20, 30, 260, 40, 20);
     aggressionSlider.setLimits(0.5, 0, 1);
     aggressionSlider.setEasing(1);
     aggressionSlider.setShowValue(true);
     aggressionSlider.setShowLimits(true);
-    aggressionSlider.setTextOrientation(GAlign.LEFT, GAlign.TOP);
+    aggressionSlider.setTextOrientation(G4P.ORIENT_TRACK);
     aggressionSlider.setOpaque(true);
     aggressionSlider.setLocalColorScheme(GCScheme.BLUE_SCHEME);
-    aggressionSlider.setValueLabel("Gorilla Aggression");
     
-    fearSlider = new GSlider(controlWindow, 20, 80, 260, 40, 20);
+    fearLabel = new GLabel(controlWindow, 20, 70, 260, 20);
+    fearLabel.setText("Human Fear");
+    fearLabel.setOpaque(false);
+    
+    fearSlider = new GSlider(controlWindow, 20, 90, 260, 40, 20);
     fearSlider.setLimits(0.5, 0, 1);
     fearSlider.setEasing(1);
     fearSlider.setShowValue(true);
     fearSlider.setShowLimits(true);
-    fearSlider.setTextOrientation(GAlign.LEFT, GAlign.TOP);
+    fearSlider.setTextOrientation(G4P.ORIENT_TRACK);
     fearSlider.setOpaque(true);
     fearSlider.setLocalColorScheme(GCScheme.BLUE_SCHEME);
-    fearSlider.setValueLabel("Human Fear");
     
-    cohesionSlider = new GSlider(controlWindow, 20, 140, 260, 40, 20);
+    cohesionLabel = new GLabel(controlWindow, 20, 130, 260, 20);
+    cohesionLabel.setText("Group Cohesion");
+    cohesionLabel.setOpaque(false);
+    
+    cohesionSlider = new GSlider(controlWindow, 20, 150, 260, 40, 20);
     cohesionSlider.setLimits(0.5, 0, 1);
     cohesionSlider.setEasing(1);
     cohesionSlider.setShowValue(true);
     cohesionSlider.setShowLimits(true);
-    cohesionSlider.setTextOrientation(GAlign.LEFT, GAlign.TOP);
+    cohesionSlider.setTextOrientation(G4P.ORIENT_TRACK);
     cohesionSlider.setOpaque(true);
     cohesionSlider.setLocalColorScheme(GCScheme.BLUE_SCHEME);
-    cohesionSlider.setValueLabel("Group Cohesion");
     
     enclosedCheckbox = new GCheckbox(controlWindow, 20, 200, 260, 40);
     enclosedCheckbox.setText("Enclosed Environment");
@@ -60,6 +73,7 @@ class ControlPanel {
     if (slider == aggressionSlider) {
       gorilla.setAggression(slider.getValueF());
     }
+    // Add similar logic for other sliders if needed
   }
   
   void handleCheckboxEvents(GCheckbox checkbox, GEvent event) {

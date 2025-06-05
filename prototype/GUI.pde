@@ -12,32 +12,18 @@ class GUI {
   GButton resetButton, pauseButton;
   GLabel statsLabel, timeLabel, humansLabel, gorillaHealthLabel;
   GSlider gorillaHealthBar, humanCountBar; // Use GSlider as progress bar
-  
-  // Simulation parameters
-  int numHumans = 100;
-  float gorillaStrength = 10.0;
-  float gorillaSpeed = 3.0;
-  float gorillaHealth = 500.0;
-  float gorillaTerritorialRange = 200.0;
-  float gorillaIntimidationFactor = 5.0;
-  float gorillaStaminaRecovery = 0.1;
-  
-  float humanSpeed = 2.5;
-  float humanHealth = 50.0;
-  float humanStrength = 1.0;
-  float humanFearDecay = 0.01;
-  float humanGroupCohesion = 1.0;
-  float humanFearThreshold = 5.0;
-  float humanCommunicationRange = 100.0;
-  
-  float environmentSize = 1000.0;
-  float obstacleFriction = 0.95;
-  int numObstacles = 5;
+  GLabel titleLabel;
   
   // Stats to display
   int currentFrame = 0;
   int currentActiveHumans = 0;
   float currentGorillaHealth = 0;
+  
+  // Simulation parameters (GUI values)
+  int guiNumHumans = 100;
+  float guiGorillaStrength = 10.0;
+  float guiGorillaSpeed = 3.0;
+  float guiEnvironmentSize = 1000.0;
   
   // Constructor
   GUI(PApplet parent) {
@@ -45,23 +31,30 @@ class GUI {
   }
   
   void createGUI(PApplet parent) {
-    // Create control window
-    controlsWindow = GWindow.getWindow(parent, "Simulation Controls", 0, 0, 400, 800, JAVA2D);
+    controlsWindow = GWindow.getWindow(parent, "Simulation Controls", 0, 0, 420, 820, JAVA2D);
     controlsWindow.setActionOnClose(G4P.KEEP_OPEN);
-    controlsWindow.addDrawHandler(parent, "drawControlsWindow");
+    controlsWindow.addDrawHandler(this, "drawControlsWindow");
+    controlsWindow.setBackground(color(245, 245, 255));
     
-    // Gorilla Controls
-    GLabel gorillaLabel = new GLabel(controlsWindow, 10, 10, 380, 20);
+    int y = 10;
+    titleLabel = new GLabel(controlsWindow, 0, y, 420, 30);
+    titleLabel.setText("Gorilla vs Humans Simulation");
+    titleLabel.setFont(new GFont(this, "Arial", 18, true));
+    titleLabel.setOpaque(false);
+    titleLabel.setTextAlign(GAlign.CENTER, GAlign.MIDDLE);
+    y += 35;
+    
+    GLabel gorillaLabel = new GLabel(controlsWindow, 10, y, 400, 20);
     gorillaLabel.setText("GORILLA SETTINGS");
+    gorillaLabel.setFont(new GFont(this, "Arial", 14, true));
     gorillaLabel.setOpaque(false);
+    y += 25;
     
-    // Gorilla Strength Slider
-    GLabel strengthLabel = new GLabel(controlsWindow, 10, 35, 100, 20);
+    GLabel strengthLabel = new GLabel(controlsWindow, 20, y, 100, 20);
     strengthLabel.setText("Strength:");
     strengthLabel.setOpaque(false);
-    
-    gorillaStrengthSlider = new GSlider(controlsWindow, 110, 35, 280, 20, 10);
-    gorillaStrengthSlider.setLimits(gorillaStrength, 5, 20);
+    gorillaStrengthSlider = new GSlider(controlsWindow, 120, y, 260, 20, 10);
+    gorillaStrengthSlider.setLimits(guiGorillaStrength, 5, 20);
     gorillaStrengthSlider.setShowValue(true);
     gorillaStrengthSlider.setNumberFormat(G4P.DECIMAL, 1);
     gorillaStrengthSlider.setShowTicks(true);
@@ -70,14 +63,13 @@ class GUI {
     gorillaStrengthSlider.setOpaque(true);
     gorillaStrengthSlider.setTextOrientation(G4P.ORIENT_LEFT);
     gorillaStrengthSlider.addEventHandler(this, "handleGorillaStrength");
+    y += 30;
     
-    // Gorilla Speed Slider
-    GLabel speedLabel = new GLabel(controlsWindow, 10, 65, 100, 20);
+    GLabel speedLabel = new GLabel(controlsWindow, 20, y, 100, 20);
     speedLabel.setText("Speed:");
     speedLabel.setOpaque(false);
-    
-    gorillaSpeedSlider = new GSlider(controlsWindow, 110, 65, 280, 20, 10);
-    gorillaSpeedSlider.setLimits(gorillaSpeed, 1, 5);
+    gorillaSpeedSlider = new GSlider(controlsWindow, 120, y, 260, 20, 10);
+    gorillaSpeedSlider.setLimits(guiGorillaSpeed, 1, 5);
     gorillaSpeedSlider.setShowValue(true);
     gorillaSpeedSlider.setNumberFormat(G4P.DECIMAL, 1);
     gorillaSpeedSlider.setShowTicks(true);
@@ -86,19 +78,19 @@ class GUI {
     gorillaSpeedSlider.setOpaque(true);
     gorillaSpeedSlider.setTextOrientation(G4P.ORIENT_LEFT);
     gorillaSpeedSlider.addEventHandler(this, "handleGorillaSpeed");
+    y += 40;
     
-    // Human Controls
-    GLabel humanLabel = new GLabel(controlsWindow, 10, 200, 380, 20);
+    GLabel humanLabel = new GLabel(controlsWindow, 10, y, 400, 20);
     humanLabel.setText("HUMAN SETTINGS");
+    humanLabel.setFont(new GFont(this, "Arial", 14, true));
     humanLabel.setOpaque(false);
+    y += 25;
     
-    // Number of Humans Slider
-    GLabel numHumansLabel = new GLabel(controlsWindow, 10, 225, 100, 20);
+    GLabel numHumansLabel = new GLabel(controlsWindow, 20, y, 100, 20);
     numHumansLabel.setText("Number:");
     numHumansLabel.setOpaque(false);
-    
-    numHumansSlider = new GSlider(controlsWindow, 110, 225, 280, 20, 10);
-    numHumansSlider.setLimits(numHumans, 10, 200);
+    numHumansSlider = new GSlider(controlsWindow, 120, y, 260, 20, 10);
+    numHumansSlider.setLimits(guiNumHumans, 10, 200);
     numHumansSlider.setShowValue(true);
     numHumansSlider.setNumberFormat(G4P.INTEGER, 0);
     numHumansSlider.setShowTicks(true);
@@ -107,19 +99,19 @@ class GUI {
     numHumansSlider.setOpaque(true);
     numHumansSlider.setTextOrientation(G4P.ORIENT_LEFT);
     numHumansSlider.addEventHandler(this, "handleNumHumans");
+    y += 40;
     
-    // Environment Controls
-    GLabel envLabel = new GLabel(controlsWindow, 10, 400, 380, 20);
+    GLabel envLabel = new GLabel(controlsWindow, 10, y, 400, 20);
     envLabel.setText("ENVIRONMENT SETTINGS");
+    envLabel.setFont(new GFont(this, "Arial", 14, true));
     envLabel.setOpaque(false);
+    y += 25;
     
-    // Environment Size Slider
-    GLabel envSizeLabel = new GLabel(controlsWindow, 10, 425, 100, 20);
+    GLabel envSizeLabel = new GLabel(controlsWindow, 20, y, 100, 20);
     envSizeLabel.setText("Size:");
     envSizeLabel.setOpaque(false);
-    
-    environmentSizeSlider = new GSlider(controlsWindow, 110, 425, 280, 20, 10);
-    environmentSizeSlider.setLimits(environmentSize, 500, 2000);
+    environmentSizeSlider = new GSlider(controlsWindow, 120, y, 260, 20, 10);
+    environmentSizeSlider.setLimits(guiEnvironmentSize, 500, 2000);
     environmentSizeSlider.setShowValue(true);
     environmentSizeSlider.setNumberFormat(G4P.INTEGER, 0);
     environmentSizeSlider.setShowTicks(true);
@@ -128,83 +120,90 @@ class GUI {
     environmentSizeSlider.setOpaque(true);
     environmentSizeSlider.setTextOrientation(G4P.ORIENT_LEFT);
     environmentSizeSlider.addEventHandler(this, "handleEnvironmentSize");
+    y += 50;
     
-    // Control Buttons
-    resetButton = new GButton(controlsWindow, 10, 500, 180, 30);
+    resetButton = new GButton(controlsWindow, 40, y, 150, 35);
     resetButton.setText("Reset Simulation");
+    resetButton.setFont(new GFont(this, "Arial", 13, true));
     resetButton.addEventHandler(this, "handleReset");
-    
-    pauseButton = new GButton(controlsWindow, 210, 500, 180, 30);
+    pauseButton = new GButton(controlsWindow, 230, y, 150, 35);
     pauseButton.setText("Pause/Resume");
+    pauseButton.setFont(new GFont(this, "Arial", 13, true));
     pauseButton.addEventHandler(this, "handlePause");
+    y += 60;
     
-    // Statistics Display
-    GLabel statsTitleLabel = new GLabel(controlsWindow, 10, 600, 380, 20);
+    GLabel statsTitleLabel = new GLabel(controlsWindow, 10, y, 400, 20);
     statsTitleLabel.setText("SIMULATION STATISTICS");
+    statsTitleLabel.setFont(new GFont(this, "Arial", 14, true));
     statsTitleLabel.setOpaque(false);
+    y += 25;
     
-    timeLabel = new GLabel(controlsWindow, 10, 625, 380, 20);
+    timeLabel = new GLabel(controlsWindow, 20, y, 380, 20);
     timeLabel.setText("Time: 0");
     timeLabel.setOpaque(false);
-    
-    humansLabel = new GLabel(controlsWindow, 10, 650, 380, 20);
+    y += 20;
+    humansLabel = new GLabel(controlsWindow, 20, y, 380, 20);
     humansLabel.setText("Active Humans: 0");
     humansLabel.setOpaque(false);
-    
-    gorillaHealthLabel = new GLabel(controlsWindow, 10, 675, 380, 20);
+    y += 20;
+    gorillaHealthLabel = new GLabel(controlsWindow, 20, y, 380, 20);
     gorillaHealthLabel.setText("Gorilla Health: 0");
     gorillaHealthLabel.setOpaque(false);
-    
-    // Progress bars (use GSlider as read-only progress bar)
-    gorillaHealthBar = new GSlider(controlsWindow, 10, 700, 380, 20, 10);
+    y += 30;
+    gorillaHealthBar = new GSlider(controlsWindow, 20, y, 380, 20, 10);
     gorillaHealthBar.setLimits(0, 0, 100);
     gorillaHealthBar.setShowValue(true);
     gorillaHealthBar.setNumberFormat(G4P.INTEGER, 0);
     gorillaHealthBar.setShowTicks(false);
     gorillaHealthBar.setOpaque(true);
     gorillaHealthBar.setTextOrientation(G4P.ORIENT_LEFT);
-    gorillaHealthBar.setEnabled(false); // read-only
-    
-    humanCountBar = new GSlider(controlsWindow, 10, 730, 380, 20, 10);
+    gorillaHealthBar.setEnabled(false);
+    y += 30;
+    humanCountBar = new GSlider(controlsWindow, 20, y, 380, 20, 10);
     humanCountBar.setLimits(0, 0, 100);
     humanCountBar.setShowValue(true);
     humanCountBar.setNumberFormat(G4P.INTEGER, 0);
     humanCountBar.setShowTicks(false);
     humanCountBar.setOpaque(true);
     humanCountBar.setTextOrientation(G4P.ORIENT_LEFT);
-    humanCountBar.setEnabled(false); // read-only
+    humanCountBar.setEnabled(false);
   }
-  
+
   void handleGorillaStrength(GSlider slider, GEvent event) {
     if (event == GEvent.VALUE_STEADY) {
-      gorillaStrength = slider.getValueF();
-      if (gorilla != null) gorilla.setStrength(gorillaStrength);
+      guiGorillaStrength = slider.getValueF();
     }
   }
 
   void handleGorillaSpeed(GSlider slider, GEvent event) {
     if (event == GEvent.VALUE_STEADY) {
-      gorillaSpeed = slider.getValueF();
-      if (gorilla != null) gorilla.maxSpeed = gorillaSpeed;
+      guiGorillaSpeed = slider.getValueF();
     }
   }
 
   void handleNumHumans(GSlider slider, GEvent event) {
     if (event == GEvent.VALUE_STEADY) {
-      numHumans = slider.getValueI();
+      guiNumHumans = slider.getValueI();
     }
   }
 
   void handleEnvironmentSize(GSlider slider, GEvent event) {
     if (event == GEvent.VALUE_STEADY) {
-      environmentSize = slider.getValueF();
-      worldWidth = environmentSize;
-      worldHeight = environmentSize * 0.8;
+      guiEnvironmentSize = slider.getValueF();
     }
   }
 
   void handleReset(GButton _button, GEvent event) {
     if (event == GEvent.CLICKED) {
+      // Copy GUI values to simulation globals and re-initialize
+      numHumans = guiNumHumans;
+      worldWidth = guiEnvironmentSize;
+      worldHeight = guiEnvironmentSize * 0.8;
+      // Gorilla parameters
+      if (gorilla != null) {
+        gorilla.setStrength(guiGorillaStrength);
+        gorilla.maxSpeed = guiGorillaSpeed;
+      }
       initializeSimulation();
     }
   }
@@ -217,13 +216,13 @@ class GUI {
 
   // Draw handler for the control window
   synchronized public void drawControlsWindow(PApplet appc, GWinData _data) {
-    appc.background(230);
+    appc.background(245, 245, 255);
     // Update statistics labels
     timeLabel.setText("Time: " + currentFrame);
     humansLabel.setText("Active Humans: " + currentActiveHumans);
     gorillaHealthLabel.setText("Gorilla Health: " + int(currentGorillaHealth));
     // Update progress bars
-    gorillaHealthBar.setValue(currentGorillaHealth / gorillaHealth * 100);
-    humanCountBar.setValue(currentActiveHumans / float(numHumans) * 100);
+    gorillaHealthBar.setValue(currentGorillaHealth / (guiGorillaStrength * 50) * 100);
+    humanCountBar.setValue(currentActiveHumans / float(guiNumHumans) * 100);
   }
 } 

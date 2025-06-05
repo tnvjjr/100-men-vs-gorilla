@@ -11,7 +11,7 @@ class GUI {
   GSlider environmentSizeSlider, obstacleFrictionSlider, numObstaclesSlider;
   GButton resetButton, pauseButton;
   GLabel statsLabel, timeLabel, humansLabel, gorillaHealthLabel;
-  GProgressBar gorillaHealthBar, humanCountBar;
+  GSlider gorillaHealthBar, humanCountBar; // Use GSlider as progress bar
   
   // Simulation parameters
   int numHumans = 100;
@@ -150,18 +150,24 @@ class GUI {
     gorillaHealthLabel.setText("Gorilla Health: 0");
     gorillaHealthLabel.setOpaque(false);
     
-    // Progress bars
-    gorillaHealthBar = new GProgressBar(controlsWindow, 10, 700, 380, 20);
-    gorillaHealthBar.setLimits(0, 100);
-    gorillaHealthBar.setValue(0);
-    gorillaHealthBar.setTextVisible(true);
+    // Progress bars (use GSlider as read-only progress bar)
+    gorillaHealthBar = new GSlider(controlsWindow, 10, 700, 380, 20, 10);
+    gorillaHealthBar.setLimits(0, 0, 100);
+    gorillaHealthBar.setShowValue(true);
+    gorillaHealthBar.setNumberFormat(G4P.INTEGER, 0);
+    gorillaHealthBar.setShowTicks(false);
+    gorillaHealthBar.setOpaque(true);
     gorillaHealthBar.setTextOrientation(G4P.ORIENT_LEFT);
+    gorillaHealthBar.setEnabled(false); // read-only
     
-    humanCountBar = new GProgressBar(controlsWindow, 10, 730, 380, 20);
-    humanCountBar.setLimits(0, 100);
-    humanCountBar.setValue(0);
-    humanCountBar.setTextVisible(true);
+    humanCountBar = new GSlider(controlsWindow, 10, 730, 380, 20, 10);
+    humanCountBar.setLimits(0, 0, 100);
+    humanCountBar.setShowValue(true);
+    humanCountBar.setNumberFormat(G4P.INTEGER, 0);
+    humanCountBar.setShowTicks(false);
+    humanCountBar.setOpaque(true);
     humanCountBar.setTextOrientation(G4P.ORIENT_LEFT);
+    humanCountBar.setEnabled(false); // read-only
   }
   
   void display() {

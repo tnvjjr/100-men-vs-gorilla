@@ -200,20 +200,10 @@ class Human extends Entity {
   
   // Find the nearest active gorilla
   Gorilla findNearestGorilla() {
-    Gorilla nearest = null;
-    float minDistance = Float.MAX_VALUE;
-    
-    for (Gorilla gorilla : gorillas) {
-      if (!gorilla.isActive()) continue;
-      
-      float distance = PVector.dist(position, gorilla.position);
-      if (distance < minDistance) {
-        minDistance = distance;
-        nearest = gorilla;
-      }
+    if (gorilla != null && gorilla.isActive()) {
+      return gorilla;
     }
-    
-    return nearest;
+    return null;
   }
   
   // Find nearby humans
